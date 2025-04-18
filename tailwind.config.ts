@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				bugsu: {
+					dark: '#1A1F2C',
+					purple: '#9b87f5',
+					orange: '#F97316',
+					red: '#ea384c',
+					blue: '#0EA5E9',
+					soft: '#E5DEFF',
 				}
 			},
 			borderRadius: {
@@ -84,11 +93,31 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+				'pulse-glow': {
+					'0%, 100%': { 
+						opacity: '1',
+						filter: 'brightness(100%)'
+					},
+					'50%': { 
+						opacity: '0.8',
+						filter: 'brightness(120%)'
+					}
+				},
+				'scanning': {
+					'0%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(100%)' },
+					'100%': { transform: 'translateY(0)' }
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-glow': 'pulse-glow 2s infinite',
+				'scanning': 'scanning 2s ease-in-out infinite',
+			},
+			fontFamily: {
+				mono: ['Roboto Mono', 'monospace'],
 			}
 		}
 	},
