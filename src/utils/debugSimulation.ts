@@ -1,7 +1,7 @@
 
 import { Dispatch, SetStateAction } from "react";
 
-export type DebugStage = 'idle' | 'scanning' | 'fixing' | 'complete';
+export type DebugStage = 'idle' | 'scanning' | 'fixing' | 'complete' | 'error';
 export type Issue = { id: number; name: string; fixed: boolean };
 
 const ISSUE_TYPES = [
@@ -19,9 +19,19 @@ export const simulateScanning = (
   setProgress: Dispatch<SetStateAction<number>>,
   setIssues: Dispatch<SetStateAction<Issue[]>>,
   setDebugStage: Dispatch<SetStateAction<DebugStage>>,
+  setError: Dispatch<SetStateAction<string | null>>,
   simulateFixing: () => void
 ) => {
+  setError(null);
   const scanInterval = setInterval(() => {
+    // Simulate random errors (10% chance)
+    if (Math.random() < 0.1) {
+      clearInterval(scanInterval);
+      setDebugStage('error');
+      setError('Connection interrupted during scanning process');
+      return;
+    }
+
     setProgress(prev => {
       const newProgress = prev + 5;
       if (newProgress >= 100) {
@@ -49,11 +59,21 @@ export const simulateScanning = (
 export const simulateFixing = (
   setProgress: Dispatch<SetStateAction<number>>,
   setIssues: Dispatch<SetStateAction<Issue[]>>,
-  setDebugStage: Dispatch<SetStateAction<DebugStage>>
+  setDebugStage: Dispatch<SetStateAction<DebugStage>>,
+  setError: Dispatch<SetStateAction<string | null>>
 ) => {
   setProgress(0);
+  setError(null);
   
   const fixInterval = setInterval(() => {
+    // Simulate random errors (5% chance)
+    if (Math.random() < 0.05) {
+      clearInterval(fixInterval);
+      setDebugStage('error');
+      setError('Unable to apply fixes - system resource limit reached');
+      return;
+    }
+
     setProgress(prev => {
       const newProgress = prev + 3;
       if (newProgress >= 100) {
@@ -79,3 +99,4 @@ export const simulateFixing = (
     });
   }, 150);
 };
+

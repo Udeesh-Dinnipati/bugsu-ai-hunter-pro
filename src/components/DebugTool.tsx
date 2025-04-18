@@ -5,6 +5,7 @@ import { Bug } from "lucide-react";
 import { IdleStage } from "./debug/IdleStage";
 import { ProgressStage } from "./debug/ProgressStage";
 import { CompleteStage } from "./debug/CompleteStage";
+import { ErrorState } from "./debug/ErrorState";
 import { DebugStage, Issue, simulateFixing, simulateScanning } from "@/utils/debugSimulation";
 
 export default function DebugTool({ isOpen, onClose }: {
@@ -14,14 +15,16 @@ export default function DebugTool({ isOpen, onClose }: {
   const [debugStage, setDebugStage] = useState<DebugStage>('idle');
   const [progress, setProgress] = useState(0);
   const [issues, setIssues] = useState<Issue[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleStartDebug = () => {
     setDebugStage('scanning');
     setProgress(0);
     setIssues([]);
+    setError(null);
 
-    const startFixing = () => simulateFixing(setProgress, setIssues, setDebugStage);
-    simulateScanning(setProgress, setIssues, setDebugStage, startFixing);
+    const startFixing = () => simulateFixing(setProgress, setIssues, setDebugStage, setError);
+    simulateScanning(setProgress, setIssues, setDebugStage, setError, startFixing);
   };
 
   return (
@@ -57,8 +60,16 @@ export default function DebugTool({ isOpen, onClose }: {
               onRunAgain={handleStartDebug}
             />
           )}
+
+          {debugStage === 'error' && error && (
+            <ErrorState
+              error={error}
+              onRetry={handleStartDebug}
+            />
+          )}
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+
