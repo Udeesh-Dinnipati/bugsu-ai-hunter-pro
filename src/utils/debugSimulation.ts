@@ -18,8 +18,8 @@ const ISSUE_TYPES = [
 let scanningIntervalId: NodeJS.Timeout | null = null;
 let fixingIntervalId: NodeJS.Timeout | null = null;
 
-// Helper function to clear all intervals
-const clearAllIntervals = () => {
+// Helper function to clear all intervals - export this so it can be used in components
+export const clearAllIntervals = () => {
   if (scanningIntervalId) {
     clearInterval(scanningIntervalId);
     scanningIntervalId = null;
@@ -43,10 +43,10 @@ export const simulateScanning = (
   
   setError(null);
   
-  // Start new scanning interval
+  // Start new scanning interval - reduced error chance to 1% for better user experience
   scanningIntervalId = setInterval(() => {
-    // Only 5% chance of error now to make the tool more usable
-    if (Math.random() < 0.05) {
+    // Only 1% chance of error now to make the tool more usable
+    if (Math.random() < 0.01) {
       clearAllIntervals();
       setDebugStage('error');
       setError('Connection interrupted during scanning process');
@@ -57,12 +57,11 @@ export const simulateScanning = (
     setProgress(prev => {
       const newProgress = prev + 5;
       if (newProgress >= 100) {
-        if (scanningIntervalId) {
-          clearInterval(scanningIntervalId);
-          scanningIntervalId = null;
-        }
+        clearAllIntervals();
         setDebugStage('fixing');
-        simulateFixing();
+        setTimeout(() => {
+          simulateFixing();
+        }, 100); // Small delay to ensure state updates properly
         return 100;
       }
       return newProgress;
@@ -89,18 +88,15 @@ export const simulateFixing = (
   onComplete: () => void
 ) => {
   // Clear any existing intervals first
-  if (scanningIntervalId) {
-    clearInterval(scanningIntervalId);
-    scanningIntervalId = null;
-  }
+  clearAllIntervals();
   
   setProgress(0);
   setError(null);
   
-  // Start new fixing interval
+  // Start new fixing interval - reduced error chance to 0.5% for better user experience
   fixingIntervalId = setInterval(() => {
-    // Only 3% chance of error now
-    if (Math.random() < 0.03) {
+    // Only 0.5% chance of error now
+    if (Math.random() < 0.005) {
       clearAllIntervals();
       setDebugStage('error');
       setError('Unable to apply fixes - system resource limit reached');

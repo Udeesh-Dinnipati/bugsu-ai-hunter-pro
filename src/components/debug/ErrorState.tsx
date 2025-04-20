@@ -21,11 +21,15 @@ export function ErrorState({ error, onRetry }: ErrorStateProps) {
 
   return (
     <div className="space-y-4">
-      <Alert variant="destructive">
+      <Alert variant="destructive" className="border-red-500">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
+        <AlertTitle>Debug Process Error</AlertTitle>
+        <AlertDescription className="mt-2">{error}</AlertDescription>
       </Alert>
+      
+      <div className="text-center text-sm text-muted-foreground mt-2 mb-2">
+        The debug process encountered an error. Please try again.
+      </div>
       
       <Button 
         onClick={handleRetry} 

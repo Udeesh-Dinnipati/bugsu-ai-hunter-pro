@@ -6,7 +6,7 @@ import { IdleStage } from "./debug/IdleStage";
 import { ProgressStage } from "./debug/ProgressStage";
 import { CompleteStage } from "./debug/CompleteStage";
 import { ErrorState } from "./debug/ErrorState";
-import { DebugStage, Issue, simulateFixing, simulateScanning } from "@/utils/debugSimulation";
+import { DebugStage, Issue, simulateFixing, simulateScanning, clearAllIntervals } from "@/utils/debugSimulation";
 import { toast } from "@/hooks/use-toast";
 
 export default function DebugTool({ isOpen, onClose }: {
@@ -23,6 +23,7 @@ export default function DebugTool({ isOpen, onClose }: {
   useEffect(() => {
     return () => {
       setIsRunning(false);
+      clearAllIntervals(); // Clear all intervals on component unmount
     };
   }, []);
 
@@ -34,10 +35,12 @@ export default function DebugTool({ isOpen, onClose }: {
       setIssues([]);
       setError(null);
       setIsRunning(false);
+      clearAllIntervals(); // Clear all intervals when dialog opens
     }
   }, [isOpen]);
 
   const handleStartDebug = () => {
+    clearAllIntervals(); // Clear any existing intervals before starting
     setDebugStage('scanning');
     setProgress(0);
     setIssues([]);
@@ -46,13 +49,20 @@ export default function DebugTool({ isOpen, onClose }: {
 
     try {
       const startFixing = () => {
-        if (!isRunning) return;
+        if (!isRunning) {
+          clearAllIntervals();
+          return;
+        }
+        
         simulateFixing(
           setProgress, 
           setIssues, 
           setDebugStage, 
           setError,
-          () => setIsRunning(false)
+          () => {
+            setIsRunning(false);
+            clearAllIntervals();
+          }
         );
       };
 
@@ -62,20 +72,30 @@ export default function DebugTool({ isOpen, onClose }: {
         setDebugStage, 
         setError, 
         startFixing,
-        () => setIsRunning(false)
+        () => {
+          setIsRunning(false);
+          clearAllIntervals();
+        }
       );
     } catch (err) {
+      clearAllIntervals();
       setDebugStage('error');
       setError('An unexpected error occurred while initializing the debug process');
       setIsRunning(false);
     }
   };
 
+  // Handle closing the dialog properly
+  const handleClose = () => {
+    setIsRunning(false);
+    clearAllIntervals();
+    onClose();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) {
-        setIsRunning(false);
-        onClose();
+        handleClose();
       }
     }}>
       <DialogContent className="sm:max-w-[500px]">
@@ -105,10 +125,7 @@ export default function DebugTool({ isOpen, onClose }: {
           {debugStage === 'complete' && (
             <CompleteStage
               issueCount={issues.length}
-              onClose={() => {
-                setIsRunning(false);
-                onClose();
-              }}
+              onClose={handleClose}
               onRunAgain={handleStartDebug}
             />
           )}
