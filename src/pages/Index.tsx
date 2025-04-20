@@ -23,6 +23,10 @@ const Index = () => {
     setIsReportModalOpen(true);
   };
 
+  const handleOpenDebugTool = () => {
+    setIsDebugModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar />
@@ -63,7 +67,7 @@ const Index = () => {
             <UrlScanner onScanComplete={handleScanComplete} />
             
             <div className="text-center mt-10">
-              <Button variant="outline" onClick={() => setIsDebugModalOpen(true)}>
+              <Button variant="outline" onClick={handleOpenDebugTool}>
                 Debug BugSU Application
               </Button>
             </div>

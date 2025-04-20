@@ -3,6 +3,7 @@ import { Bug, Menu, Shield } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -10,10 +11,12 @@ export default function NavBar() {
   return (
     <nav className="w-full py-4 px-6 flex justify-between items-center border-b border-border bg-card/30 backdrop-blur-md z-50">
       <div className="flex items-center gap-2">
-        <Shield className="h-6 w-6 text-bugsu-purple" />
-        <span className="text-xl font-bold">
-          Bug<span className="text-bugsu-purple">SU</span>
-        </span>
+        <Link to="/" className="flex items-center gap-2">
+          <Shield className="h-6 w-6 text-bugsu-purple" />
+          <span className="text-xl font-bold">
+            Bug<span className="text-bugsu-purple">SU</span>
+          </span>
+        </Link>
       </div>
 
       <div className="md:hidden">
@@ -31,17 +34,30 @@ export default function NavBar() {
         menuOpen ? "flex" : "hidden md:flex",
         menuOpen ? "opacity-100" : "opacity-0 md:opacity-100"
       )}>
-        <Button variant="ghost" className="justify-start md:justify-center">
-          <Bug className="mr-2 h-4 w-4" />
-          Scanner
-        </Button>
-        <Button variant="ghost" className="justify-start md:justify-center">
-          Reports
-        </Button>
-        <Button variant="ghost" className="justify-start md:justify-center">
-          Legal Guide
-        </Button>
-        <Button variant="secondary" className="justify-start md:justify-center">
+        <Link to="/scanner" onClick={() => setMenuOpen(false)}>
+          <Button variant="ghost" className="justify-start md:justify-center w-full">
+            <Bug className="mr-2 h-4 w-4" />
+            Scanner
+          </Button>
+        </Link>
+        <Link to="/reports" onClick={() => setMenuOpen(false)}>
+          <Button variant="ghost" className="justify-start md:justify-center w-full">
+            Reports
+          </Button>
+        </Link>
+        <Link to="/legal-guide" onClick={() => setMenuOpen(false)}>
+          <Button variant="ghost" className="justify-start md:justify-center w-full">
+            Legal Guide
+          </Button>
+        </Link>
+        <Button 
+          variant="secondary" 
+          className="justify-start md:justify-center"
+          onClick={() => {
+            setMenuOpen(false);
+            document.dispatchEvent(new Event('openDebugTool'));
+          }}
+        >
           Debug Tool
         </Button>
       </div>
