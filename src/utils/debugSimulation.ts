@@ -15,27 +15,52 @@ const ISSUE_TYPES = [
   "Resource cleanup problem"
 ];
 
+let scanningIntervalId: NodeJS.Timeout | null = null;
+let fixingIntervalId: NodeJS.Timeout | null = null;
+
+// Helper function to clear all intervals
+const clearAllIntervals = () => {
+  if (scanningIntervalId) {
+    clearInterval(scanningIntervalId);
+    scanningIntervalId = null;
+  }
+  if (fixingIntervalId) {
+    clearInterval(fixingIntervalId);
+    fixingIntervalId = null;
+  }
+};
+
 export const simulateScanning = (
   setProgress: Dispatch<SetStateAction<number>>,
   setIssues: Dispatch<SetStateAction<Issue[]>>,
   setDebugStage: Dispatch<SetStateAction<DebugStage>>,
   setError: Dispatch<SetStateAction<string | null>>,
-  simulateFixing: () => void
+  simulateFixing: () => void,
+  onComplete: () => void
 ) => {
+  // Clear any existing intervals first
+  clearAllIntervals();
+  
   setError(null);
-  const scanInterval = setInterval(() => {
-    // Simulate random errors (10% chance)
-    if (Math.random() < 0.1) {
-      clearInterval(scanInterval);
+  
+  // Start new scanning interval
+  scanningIntervalId = setInterval(() => {
+    // Only 5% chance of error now to make the tool more usable
+    if (Math.random() < 0.05) {
+      clearAllIntervals();
       setDebugStage('error');
       setError('Connection interrupted during scanning process');
+      onComplete();
       return;
     }
 
     setProgress(prev => {
       const newProgress = prev + 5;
       if (newProgress >= 100) {
-        clearInterval(scanInterval);
+        if (scanningIntervalId) {
+          clearInterval(scanningIntervalId);
+          scanningIntervalId = null;
+        }
         setDebugStage('fixing');
         simulateFixing();
         return 100;
@@ -60,26 +85,36 @@ export const simulateFixing = (
   setProgress: Dispatch<SetStateAction<number>>,
   setIssues: Dispatch<SetStateAction<Issue[]>>,
   setDebugStage: Dispatch<SetStateAction<DebugStage>>,
-  setError: Dispatch<SetStateAction<string | null>>
+  setError: Dispatch<SetStateAction<string | null>>,
+  onComplete: () => void
 ) => {
+  // Clear any existing intervals first
+  if (scanningIntervalId) {
+    clearInterval(scanningIntervalId);
+    scanningIntervalId = null;
+  }
+  
   setProgress(0);
   setError(null);
   
-  const fixInterval = setInterval(() => {
-    // Simulate random errors (5% chance)
-    if (Math.random() < 0.05) {
-      clearInterval(fixInterval);
+  // Start new fixing interval
+  fixingIntervalId = setInterval(() => {
+    // Only 3% chance of error now
+    if (Math.random() < 0.03) {
+      clearAllIntervals();
       setDebugStage('error');
       setError('Unable to apply fixes - system resource limit reached');
+      onComplete();
       return;
     }
 
     setProgress(prev => {
       const newProgress = prev + 3;
       if (newProgress >= 100) {
-        clearInterval(fixInterval);
+        clearAllIntervals();
         setDebugStage('complete');
         setIssues(prev => prev.map(issue => ({ ...issue, fixed: true })));
+        onComplete();
         return 100;
       }
       return newProgress;
@@ -99,4 +134,3 @@ export const simulateFixing = (
     });
   }, 150);
 };
-

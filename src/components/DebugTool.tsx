@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Bug } from "lucide-react";
 import { IdleStage } from "./debug/IdleStage";
@@ -7,6 +7,7 @@ import { ProgressStage } from "./debug/ProgressStage";
 import { CompleteStage } from "./debug/CompleteStage";
 import { ErrorState } from "./debug/ErrorState";
 import { DebugStage, Issue, simulateFixing, simulateScanning } from "@/utils/debugSimulation";
+import { toast } from "@/hooks/use-toast";
 
 export default function DebugTool({ isOpen, onClose }: {
   isOpen: boolean;
@@ -16,19 +17,67 @@ export default function DebugTool({ isOpen, onClose }: {
   const [progress, setProgress] = useState(0);
   const [issues, setIssues] = useState<Issue[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+
+  // Clean up any ongoing processes when component unmounts or dialog closes
+  useEffect(() => {
+    return () => {
+      setIsRunning(false);
+    };
+  }, []);
+
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setDebugStage('idle');
+      setProgress(0);
+      setIssues([]);
+      setError(null);
+      setIsRunning(false);
+    }
+  }, [isOpen]);
 
   const handleStartDebug = () => {
     setDebugStage('scanning');
     setProgress(0);
     setIssues([]);
     setError(null);
+    setIsRunning(true);
 
-    const startFixing = () => simulateFixing(setProgress, setIssues, setDebugStage, setError);
-    simulateScanning(setProgress, setIssues, setDebugStage, setError, startFixing);
+    try {
+      const startFixing = () => {
+        if (!isRunning) return;
+        simulateFixing(
+          setProgress, 
+          setIssues, 
+          setDebugStage, 
+          setError,
+          () => setIsRunning(false)
+        );
+      };
+
+      simulateScanning(
+        setProgress, 
+        setIssues, 
+        setDebugStage, 
+        setError, 
+        startFixing,
+        () => setIsRunning(false)
+      );
+    } catch (err) {
+      setDebugStage('error');
+      setError('An unexpected error occurred while initializing the debug process');
+      setIsRunning(false);
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        setIsRunning(false);
+        onClose();
+      }
+    }}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -56,7 +105,10 @@ export default function DebugTool({ isOpen, onClose }: {
           {debugStage === 'complete' && (
             <CompleteStage
               issueCount={issues.length}
-              onClose={onClose}
+              onClose={() => {
+                setIsRunning(false);
+                onClose();
+              }}
               onRunAgain={handleStartDebug}
             />
           )}
@@ -72,4 +124,3 @@ export default function DebugTool({ isOpen, onClose }: {
     </Dialog>
   );
 }
-
