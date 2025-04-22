@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -137,6 +136,15 @@ export interface Vulnerability {
   exploitSuggestion: string;
   isLegal: boolean;
   legalNotes?: string;
+
+  asset?: string;
+  weakness?: string;
+  poc?: {
+    title: string;
+    desc: string;
+    impact: string;
+  };
+  payload?: string;
 }
 
 export interface ScanResult {
